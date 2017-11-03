@@ -39,6 +39,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Nullable;
 import javax.validation.Valid;
 
 import static org.springframework.http.MediaType.TEXT_HTML;
@@ -60,9 +61,10 @@ public class MessageController {
     @RequestMapping()
     public MessageList getMessages(
             @RequestParam(name = "recipient", required = false) @Email String recipientEmail,
+            @RequestParam(name = "sender", required = false) @Email String senderEmail,
             Pageable pageRequest) {
 
-        return messageService.findMessages(recipientEmail, pageRequest);
+        return messageService.findMessages(recipientEmail, senderEmail, pageRequest);
     }
 
     @RequestMapping(value = "/{messageId}")

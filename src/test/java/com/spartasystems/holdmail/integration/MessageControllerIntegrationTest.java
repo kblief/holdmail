@@ -21,6 +21,7 @@ package com.spartasystems.holdmail.integration;
 import com.spartasystems.holdmail.util.TestMailClient;
 import io.restassured.http.ContentType;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
+import io.restassured.module.mockmvc.response.MockMvcResponse;
 import io.restassured.module.mockmvc.response.ValidatableMockMvcResponse;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -36,10 +37,7 @@ import java.util.List;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.get;
 import static java.lang.System.currentTimeMillis;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.startsWith;
+import static org.hamcrest.CoreMatchers.*;
 
 public class MessageControllerIntegrationTest extends BaseIntegrationTest {
 
@@ -81,8 +79,8 @@ public class MessageControllerIntegrationTest extends BaseIntegrationTest {
             Pair<String, String> recipAndSubject = expectedMessages.get(numMailsToSend - i - 1);
 
             resp.body("messages.get(" + i + ").senderEmail", equalTo(FROM_EMAIL))
-                .body("messages.get(" + i + ").recipients", equalTo(recipAndSubject.getLeft()))
-                .body("messages.get(" + i + ").subject", equalTo(recipAndSubject.getRight()));
+                    .body("messages.get(" + i + ").recipients", equalTo(recipAndSubject.getLeft()))
+                    .body("messages.get(" + i + ").subject", equalTo(recipAndSubject.getRight()));
         }
 
     }
@@ -91,6 +89,27 @@ public class MessageControllerIntegrationTest extends BaseIntegrationTest {
     public void shouldAcceptAndListMailsByRecipientEmail() throws Exception {
 
         final String EMAIL = "listTestRecipient" + currentTimeMillis() + "@example.org";
+
+        final String queryURIForRecipient = ENDPOINT_MESSAGES + "?sender=" + FROM_EMAIL;
+
+        get(queryURIForRecipient).then().assertThat().body("messages.size()", equalTo(0));
+
+        // send a bunch of mails to random recips, but 3 to our target user too
+        smtpClient.sendTextEmail(FROM_EMAIL, EMAIL, "mail one", TEXT_BODY);
+        smtpClient.sendTextEmail(FROM_EMAIL, EMAIL, "mail two", TEXT_BODY);
+        smtpClient.sendTextEmail(FROM_EMAIL, EMAIL, "mail three", TEXT_BODY);
+
+        get(queryURIForRecipient).then().assertThat()
+                .body("messages.size()", equalTo(3))
+                // mails are listed most recently accepted first
+                .body("messages*.senderEmail", hasItems(FROM_EMAIL,FROM_EMAIL,FROM_EMAIL))
+                .body("messages*.subject", hasItems("mail three","mail two","mail one"));
+    }
+
+    @Test
+    public void shouldAcceptAndListMailsBySenderEmail() throws Exception {
+
+        final String EMAIL = "listTestSender" + currentTimeMillis() + "@example.org";
 
         final String queryURIForRecipient = ENDPOINT_MESSAGES + "?recipient=" + EMAIL;
 
@@ -105,14 +124,14 @@ public class MessageControllerIntegrationTest extends BaseIntegrationTest {
         sendMailToRandomRecipients(1);
 
         get(queryURIForRecipient).then().assertThat()
-                                 .body("messages.size()", equalTo(3))
-                                 // mails are listed most recently accepted first
-                                 .body("messages.get(0).recipients", equalTo(EMAIL))
-                                 .body("messages.get(0).subject", equalTo("mail three"))
-                                 .body("messages.get(1).recipients", equalTo(EMAIL))
-                                 .body("messages.get(1).subject", equalTo("mail two"))
-                                 .body("messages.get(2).recipients", equalTo(EMAIL))
-                                 .body("messages.get(2).subject", equalTo("mail one"));
+                .body("messages.size()", equalTo(3))
+                // mails are listed most recently accepted first
+                .body("messages.get(0).recipients", equalTo(EMAIL))
+                .body("messages.get(0).subject", equalTo("mail three"))
+                .body("messages.get(1).recipients", equalTo(EMAIL))
+                .body("messages.get(1).subject", equalTo("mail two"))
+                .body("messages.get(2).recipients", equalTo(EMAIL))
+                .body("messages.get(2).subject", equalTo("mail one"));
     }
 
     @Test

@@ -33,6 +33,7 @@ import org.springframework.test.context.support.DirtiesContextTestExecutionListe
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 
 import javax.transaction.Transactional;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -58,9 +59,9 @@ public class MessageRepositoryTest extends BaseIntegrationTest{
 
     @Test
     public void shouldFind25MessagesWithSomeoneExampleComSenderEmail() throws Exception {
-        Stream<MessageEntity> first150BySenderEmail = messageRepository.findBySenderEmail("someone@example.org",new PageRequest(0,150));
+        List<MessageEntity> first150BySenderEmail = messageRepository.findAllBySenderEmailOrderByReceivedDateDesc("someone@example.org",new PageRequest(0,150));
 
-        assertThat(first150BySenderEmail.collect(Collectors.toList())).hasSize(25);
+        assertThat(first150BySenderEmail).hasSize(25);
 
     }
 }

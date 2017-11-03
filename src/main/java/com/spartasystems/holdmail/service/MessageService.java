@@ -66,15 +66,18 @@ public class MessageService {
         return messageMapper.toDomain(entity);
     }
 
-    public MessageList findMessages(@Null @Email String recipientEmail, Pageable pageRequest) {
+    public MessageList findMessages(@Null @Email String recipientEmail,
+                                    @Null @Email String senderEmail,
+                                    Pageable pageRequest) {
 
         List<MessageEntity> entities;
 
-        if (StringUtils.isBlank(recipientEmail)) {
+        if (StringUtils.isBlank(recipientEmail) && StringUtils.isBlank(senderEmail)) {
             entities = messageRepository.findAllByOrderByReceivedDateDesc(pageRequest);
-        }
-        else {
+        } else if (StringUtils.isNotBlank(recipientEmail)) {
             entities = messageRepository.findAllForRecipientOrderByReceivedDateDesc(recipientEmail, pageRequest);
+        } else {
+            entities = messageRepository.findAllBySenderEmailOrderByReceivedDateDesc(senderEmail, pageRequest);
         }
 
         return messageListMapper.toMessageList(entities);

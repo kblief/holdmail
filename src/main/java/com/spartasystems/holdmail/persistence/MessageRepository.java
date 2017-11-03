@@ -37,6 +37,6 @@ public interface MessageRepository extends CrudRepository<MessageEntity, Long> {
 
     Stream<MessageEntity> findBySubject(String subject, Pageable pageable);
 
-    Stream<MessageEntity> findBySenderEmail(String senderEmail, Pageable pageable);
+    List<MessageEntity> findAllBySenderEmailOrderByReceivedDateDesc(String senderEmail, Pageable pageable);
 
 }

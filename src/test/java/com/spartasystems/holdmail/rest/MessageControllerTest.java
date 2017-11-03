@@ -86,9 +86,9 @@ public class MessageControllerTest {
 
         MessageList expectedMessages = new MessageList(messageMocks);
 
-        when(messageServiceMock.findMessages(MOE_SZYSLAK, pageableMock)).thenReturn(expectedMessages);
+        when(messageServiceMock.findMessages(MOE_SZYSLAK, null, pageableMock)).thenReturn(expectedMessages);
 
-        assertThat(messageControllerSpy.getMessages(MOE_SZYSLAK, pageableMock)).isEqualTo(expectedMessages);
+        assertThat(messageControllerSpy.getMessages(MOE_SZYSLAK, null, pageableMock)).isEqualTo(expectedMessages);
     }
 
     @Test

@@ -45,6 +45,7 @@ import static org.mockito.Mockito.when;
 public class MessageServiceTest {
 
     private static final String SENDER_EMAIL = "sender@email.org";
+    private static final String RECEIPENT_EMAIL = "receipent@eamil.org";
 
     @Mock
     private MessageRepository messageRepositoryMock;
@@ -104,8 +105,8 @@ public class MessageServiceTest {
         when(messageRepositoryMock.findAllByOrderByReceivedDateDesc(pageableMock)).thenReturn(entities);
         when(messageListMapper.toMessageList(entities)).thenReturn(messageListMock);
 
-        assertThat(messageService.findMessages(null, pageableMock)).isEqualTo(messageListMock);
-        assertThat(messageService.findMessages("", pageableMock)).isEqualTo(messageListMock);
+        assertThat(messageService.findMessages(null, null, pageableMock)).isEqualTo(messageListMock);
+        assertThat(messageService.findMessages("", null, pageableMock)).isEqualTo(messageListMock);
     }
 
     @Test
@@ -114,11 +115,24 @@ public class MessageServiceTest {
         List<MessageEntity> entities = asList(mock(MessageEntity.class), mock(MessageEntity.class));
         MessageList messageListMock = mock(MessageList.class);
 
-        when(messageRepositoryMock.findAllForRecipientOrderByReceivedDateDesc(SENDER_EMAIL, pageableMock))
+        when(messageRepositoryMock.findAllForRecipientOrderByReceivedDateDesc(RECEIPENT_EMAIL, pageableMock))
                 .thenReturn(entities);
         when(messageListMapper.toMessageList(entities)).thenReturn(messageListMock);
 
-        assertThat(messageService.findMessages(SENDER_EMAIL, pageableMock)).isEqualTo(messageListMock);
+        assertThat(messageService.findMessages(RECEIPENT_EMAIL, null, pageableMock)).isEqualTo(messageListMock);
+    }
+
+    @Test
+    public void shouldFindMessagesForSenderIfEmailIsNotBlank() throws Exception {
+
+        List<MessageEntity> entities = asList(mock(MessageEntity.class), mock(MessageEntity.class));
+        MessageList messageListMock = mock(MessageList.class);
+
+        when(messageRepositoryMock.findAllBySenderEmailOrderByReceivedDateDesc(SENDER_EMAIL, pageableMock))
+                .thenReturn(entities);
+        when(messageListMapper.toMessageList(entities)).thenReturn(messageListMock);
+
+        assertThat(messageService.findMessages(null, SENDER_EMAIL, pageableMock)).isEqualTo(messageListMock);
     }
 
     @Test
